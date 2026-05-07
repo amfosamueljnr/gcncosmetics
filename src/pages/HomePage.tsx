@@ -5,11 +5,11 @@ import ProductCard from "@/components/ProductCard";
 import ProductSkeleton from "@/components/ProductSkeleton";
 import { useAdmin } from "@/context/AdminContext";
 import { testimonials } from "@/services/products";
-import heroImage1 from "@/assets/hero-1.jpg";
+import heroImage from "@/assets/gcn-bg.jpeg";
 import heroImage2 from "@/assets/hero-2.jpg";
-import categoryHair from "@/assets/category-women.jpg";
+import categoryFirst from "@/assets/gcn-bg.jpeg";
 import categorySkin from "@/assets/category-men.jpg";
-import categoryHerbal from "@/assets/category-accessories.jpg";
+import categoryThird from "@/assets/kiss-me.png";
 import { useState } from "react";
 
 const spring = { type: "spring" as const, duration: 0.5, bounce: 0.2 };
@@ -29,7 +29,7 @@ export default function HomePage() {
       <section className="relative min-h-[90svh] flex items-center justify-center overflow-hidden -mt-16 md:-mt-20 pt-16 md:pt-20">
         <div className="absolute inset-0">
           <img
-            src={heroImage1}
+            src={heroImage}
             alt="Premium lip care and hair care products"
             className="h-full w-full object-cover"
           />
@@ -107,7 +107,7 @@ export default function HomePage() {
               >
                 <Link to={`/shop?category=${cat.slug}`} className="group relative block aspect-[3/4] overflow-hidden rounded-card">
                   <img
-                    src={[categoryHair, categorySkin, categoryHerbal][i]}
+                    src={[categoryFirst, categorySkin, categoryThird][i]}
                     alt={cat.name}
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"

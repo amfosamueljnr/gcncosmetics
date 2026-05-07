@@ -11,7 +11,9 @@ const spring = { type: "spring" as const, duration: 0.5, bounce: 0.2 };
 const contactInfo = [
   { icon: Mail, label: "Email", value: "globalchoicenaturals@gmail.com", href: "mailto:globalchoicenaturals@gmail.com" },
   { icon: Phone, label: "Phone", value: "+233 599 551 592", href: "tel:+233599551592" },
-  { icon: MapPin, label: "Studio", value: "12 Cantonments Road, Accra, Ghana", href: "#" },
+  { icon: Phone, label: "Phone", value: "0274654976", href: "tel:0274654976" },
+  { icon: MapPin, label: "Location", value: "Tarkwa, Ghana", href: "#" },
+  { icon: MapPin, label: "Location", value: "UCC Campus, Cape Coast, Ghana", href: "#" },
 ];
 
 const socials = [
@@ -110,7 +112,7 @@ export default function ContactPage() {
                 ))}
               </div>
 
-              <div className="rounded-card bg-card p-6 shadow-card">
+              {/* <div className="rounded-card bg-card p-6 shadow-card">
                 <h3 className="font-display text-lg font-bold text-foreground mb-4">Follow Us</h3>
                 <div className="flex gap-3">
                   {socials.map((s) => (
@@ -126,16 +128,28 @@ export default function ContactPage() {
                     </a>
                   ))}
                 </div>
-              </div>
-
-              <div className="rounded-card bg-secondary/60 aspect-[4/3] flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="mx-auto h-8 w-8 text-muted-foreground/40" />
-                  <p className="mt-2 font-body text-xs text-muted-foreground">Map</p>
-                </div>
-              </div>
+              </div> */}
             </motion.div>
           </div>
+
+          {/* Full-width Map */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...spring, delay: 0.3 }}
+            className="mt-12 rounded-card overflow-hidden h-96"
+          >
+            <iframe
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3968.5287506!2d-1.2921622!3d5.1103!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xfdf9b2c1d5d5d5d5%3A0x1234567890abcdef!2sUniversity%20of%20Cape%20Coast!5e0!3m2!1sen!2sgh!4v1234567890123"
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              style={{ border: 0 }}
+            ></iframe>
+          </motion.div>
 
           {/* FAQ */}
           <motion.div

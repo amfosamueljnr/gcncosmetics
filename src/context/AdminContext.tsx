@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { getAdminSession, supabase } from "@/lib/supabase";
 import type { Product, Category, Order } from "@/services/products";
-import { fetchCategories, fetchOrders, fetchProducts, mapOrder, productToRow } from "@/services/products";
+import { fetchCategories, fetchOrders, fetchProducts, productToRow } from "@/services/products";
 
 interface AdminContextType {
   products: Product[];
@@ -16,7 +16,6 @@ interface AdminContextType {
   addCategory: (category: Omit<Category, "count">) => Promise<void>;
   updateCategory: (slug: string, updates: Partial<Category>) => Promise<void>;
   deleteCategory: (slug: string) => Promise<void>;
-  addOrder: (order: Omit<Order, "id" | "createdAt" | "status">) => Promise<Order>;
   updateOrderStatus: (id: string, status: Order["status"]) => Promise<void>;
   getPublishedProducts: () => Product[];
   stats: {
@@ -63,7 +62,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
           fetchOrders(),
           supabase.from("orders").select("*", { count: "exact", head: true }),
           supabase.from("customers").select("*", { count: "exact", head: true }),
-          supabase.from("orders").select("total").eq("status", "confirmed"),
+          supabase.from("orders").select("total").eq("status", "paid"),
         ]);
         setOrders(ordersData);
         setDashboardStats({
@@ -181,66 +180,6 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     [refresh]
   );
 
-  const addOrder = useCallback(
-    async (order: Omit<Order, "id" | "createdAt" | "status">) => {
-      const { data: customer, error: customerError } = await supabase
-        .from("customers")
-        .upsert(
-          {
-            full_name: order.customer,
-            email: order.customerEmail ?? null,
-            phone: order.customerPhone,
-            default_address: order.shippingAddress,
-            status: "active",
-          },
-          { onConflict: "phone" }
-        )
-        .select()
-        .single();
-
-      if (customerError) throw customerError;
-
-      const { data: createdOrder, error: orderError } = await supabase
-        .from("orders")
-        .insert({
-          customer_id: customer.id,
-          total: order.total,
-          status: "confirmed",
-          shipping_address: order.shippingAddress,
-        })
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      const { error: itemsError } = await supabase.from("order_items").insert(
-        order.items.map((item) => ({
-          order_id: createdOrder.id,
-          product_id: item.productId || null,
-          product_name: item.name,
-          size: item.size,
-          quantity: item.quantity,
-          unit_price: item.price,
-          total_price: item.price * item.quantity,
-        }))
-      );
-
-      if (itemsError) throw itemsError;
-
-      const { data: fullOrder, error: fullOrderError } = await supabase
-        .from("orders")
-        .select("*, customers(full_name, email, phone), order_items(product_id, product_name, size, quantity, unit_price)")
-        .eq("id", createdOrder.id)
-        .single();
-
-      if (fullOrderError) throw fullOrderError;
-      const mapped = mapOrder(fullOrder as Parameters<typeof mapOrder>[0]);
-      await refresh();
-      return mapped;
-    },
-    [refresh]
-  );
-
   const getPublishedProducts = useCallback(() => {
     return products.filter((product) => product.status === "published");
   }, [products]);
@@ -269,7 +208,6 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         addCategory,
         updateCategory,
         deleteCategory,
-        addOrder,
         updateOrderStatus,
         getPublishedProducts,
         stats,

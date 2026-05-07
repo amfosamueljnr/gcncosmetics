@@ -1,0 +1,7 @@
+project_id = "gcn-master"
+
+[functions.initialize-paystack-payment]
+verify_jwt = false
+
+[functions.verify-paystack-payment]
+verify_jwt = false
