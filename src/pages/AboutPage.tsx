@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { Heart, Globe, Sparkles, Users } from "lucide-react";
-import heroImage1 from "@/assets/hero-1.jpg";
-import heroImage2 from "@/assets/hero-2.jpg";
-import categoryHair from "@/assets/category-women.jpg";
-import categorySkin from "@/assets/category-men.jpg";
+import heroImage1 from "@/assets/gcn-bg.jpeg";
+import heroImage2 from "@/assets/image.png";
+import categoryHair from "@/assets/kiss-me.png";
+import categorySkin from "@/assets/cat1.jpeg";
 
 const spring = { type: "spring" as const, duration: 0.5, bounce: 0.2 };
 

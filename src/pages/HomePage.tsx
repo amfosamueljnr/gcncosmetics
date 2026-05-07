@@ -6,9 +6,9 @@ import ProductSkeleton from "@/components/ProductSkeleton";
 import { useAdmin } from "@/context/AdminContext";
 import { testimonials } from "@/services/products";
 import heroImage from "@/assets/gcn-bg.jpeg";
-import heroImage2 from "@/assets/hero-2.jpg";
+import heroImage2 from "@/assets/image.png";
 import categoryFirst from "@/assets/gcn-bg.jpeg";
-import categorySkin from "@/assets/category-men.jpg";
+import categorySkin from "@/assets/cat1.jpeg";
 import categoryThird from "@/assets/kiss-me.png";
 import { useState } from "react";
 

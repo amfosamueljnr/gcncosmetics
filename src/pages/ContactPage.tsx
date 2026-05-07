@@ -144,7 +144,7 @@ export default function ContactPage() {
               height="100%"
               frameBorder="0"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3968.5287506!2d-1.2921622!3d5.1103!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xfdf9b2c1d5d5d5d5%3A0x1234567890abcdef!2sUniversity%20of%20Cape%20Coast!5e0!3m2!1sen!2sgh!4v1234567890123"
-              allowFullScreen=""
+              allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               style={{ border: 0 }}
