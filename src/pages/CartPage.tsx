@@ -6,7 +6,7 @@ import { useCart } from "@/context/CartContext";
 const spring = { type: "spring" as const, duration: 0.5, bounce: 0.2 };
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, subtotal, totalItems } = useCart();
+  const { items, removeItem, updateQuantity, subtotal, totalItems, getItemPrice } = useCart();
 
   if (items.length === 0) {
     return (
@@ -30,8 +30,7 @@ export default function CartPage() {
     );
   }
 
-  const deliveryEstimate = subtotal >= 300 ? 0 : 15;
-  const total = subtotal + deliveryEstimate;
+  const total = subtotal;
 
   return (
     <main className="section-grid">
@@ -43,15 +42,18 @@ export default function CartPage() {
         <div className="grid gap-12 lg:grid-cols-3">
           {/* Items */}
           <div className="lg:col-span-2 space-y-6">
-            {items.map((item) => (
-              <motion.div
-                key={`${item.product.id}-${item.size}`}
-                layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex gap-4 rounded-card bg-card p-4 shadow-card"
-              >
+            {items.map((item) => {
+              const unitPrice = getItemPrice(item.product, item.size);
+
+              return (
+                <motion.div
+                  key={`${item.product.id}-${item.size}`}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex gap-4 rounded-card bg-card p-4 shadow-card"
+                >
                 <Link to={`/product/${item.product.id}`} className="h-28 w-20 shrink-0 overflow-hidden rounded-card-inner">
                   <img src={item.product.images[0]} alt={item.product.name} className="h-full w-full object-cover" />
                 </Link>
@@ -62,6 +64,7 @@ export default function CartPage() {
                         {item.product.name}
                       </Link>
                       <p className="mt-0.5 font-body text-xs text-muted-foreground">Volume: {item.size}</p>
+                      <p className="mt-0.5 font-body text-xs font-semibold text-foreground price-text">GH₵{unitPrice.toFixed(2)}</p>
                     </div>
                     <button
                       onClick={() => removeItem(item.product.id, item.size)}
@@ -90,12 +93,13 @@ export default function CartPage() {
                       </button>
                     </div>
                     <span className="price-text font-body text-sm font-semibold text-foreground">
-                      GH₵{(item.product.price * item.quantity).toFixed(2)}
+                      GH₵{(unitPrice * item.quantity).toFixed(2)}
                     </span>
                   </div>
                 </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
 
           {/* Summary */}
@@ -103,19 +107,6 @@ export default function CartPage() {
             <div className="rounded-card bg-card p-6 shadow-card sticky top-24">
               <h2 className="font-display text-lg font-bold text-foreground mb-6">Order Summary</h2>
               <div className="space-y-3 font-body text-sm">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Subtotal</span>
-                  <span className="price-text text-foreground font-medium">GH₵{subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Delivery</span>
-                  <span className="price-text text-foreground font-medium">
-                    {deliveryEstimate === 0 ? "Free" : `GH₵${deliveryEstimate.toFixed(2)}`}
-                  </span>
-                </div>
-                {deliveryEstimate > 0 && (
-                  <p className="text-xs text-accent">Free delivery on orders over GH₵300</p>
-                )}
                 <div className="border-t border-border pt-3 flex justify-between">
                   <span className="font-semibold text-foreground">Total</span>
                   <span className="price-text font-semibold text-foreground">GH₵{total.toFixed(2)}</span>

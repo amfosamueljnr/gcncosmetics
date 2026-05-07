@@ -12,7 +12,7 @@ import { initializePaystackCheckout, verifyPaystackPayment } from "@/services/pa
 const spring = { type: "spring" as const, duration: 0.5, bounce: 0.2 };
 
 export default function CheckoutPage() {
-  const { items, subtotal: totalPrice, clearCart } = useCart();
+  const { items, subtotal: totalPrice, clearCart, getItemPrice } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -191,7 +191,7 @@ export default function CheckoutPage() {
                       <p className="font-body text-sm text-foreground">{item.product.name}</p>
                       <p className="font-body text-xs text-muted-foreground">Volume: {item.size} · Qty: {item.quantity}</p>
                     </div>
-                    <p className="font-body text-sm font-semibold text-foreground price-text">GH₵{(item.product.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-body text-sm font-semibold text-foreground price-text">GH₵{(getItemPrice(item.product, item.size) * item.quantity).toFixed(2)}</p>
                   </div>
                 ))}
               </div>

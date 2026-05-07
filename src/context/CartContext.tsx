@@ -15,9 +15,20 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   subtotal: number;
+  getItemPrice: (product: Product, size: string) => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
+
+// Helper function to get the price for a specific volume
+function getPriceForVolume(product: Product, size: string): number {
+  const volumePrice = product.volumePricing?.[size];
+  const price = volumePrice
+    ? volumePrice.discountPrice ?? volumePrice.price
+    : product.discountPrice ?? product.price;
+
+  return Number.isFinite(price) ? price : 0;
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -55,10 +66,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const clearCart = useCallback(() => setItems([]), []);
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
-  const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+  const subtotal = items.reduce((sum, i) => sum + getPriceForVolume(i.product, i.size) * i.quantity, 0);
+
+  const getItemPrice = useCallback((product: Product, size: string) => {
+    return getPriceForVolume(product, size);
+  }, []);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, subtotal }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, subtotal, getItemPrice }}>
       {children}
     </CartContext.Provider>
   );

@@ -27,7 +27,7 @@ const emptyProduct: Omit<Product, "id"> = {
   price: 0,
   description: "",
   materials: "",
-  deliveryInfo: "Standard delivery: 5-7 business days.",
+  volumePricing: {},
   images: [],
   sizes: [],
   colors: [],
@@ -92,6 +92,36 @@ export default function AdminProducts() {
 
   const updateField = <K extends keyof Omit<Product, "id">>(key: K, value: Omit<Product, "id">[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const updateVolumes = (value: string) => {
+    const sizes = value.split(",").map((s) => s.trim()).filter(Boolean);
+    const volumePricing = sizes.reduce<NonNullable<Product["volumePricing"]>>((next, size) => {
+      next[size] = form.volumePricing?.[size] ?? { price: form.price };
+      return next;
+    }, {});
+
+    setForm((prev) => ({ ...prev, sizes, volumePricing }));
+  };
+
+  const updateVolumePrice = (size: string, value: string) => {
+    updateField("volumePricing", {
+      ...form.volumePricing,
+      [size]: {
+        ...form.volumePricing?.[size],
+        price: value ? Number(value) : 0,
+      },
+    });
+  };
+
+  const updateVolumeDiscountPrice = (size: string, value: string) => {
+    updateField("volumePricing", {
+      ...form.volumePricing,
+      [size]: {
+        ...form.volumePricing?.[size],
+        discountPrice: value ? Number(value) : undefined,
+      },
+    });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,7 +203,7 @@ export default function AdminProducts() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label>Price (GH₵)</Label>
+                    <Label>Default Price (GH₵)</Label>
                     <Input type="number" value={form.price} onChange={(e) => updateField("price", Number(e.target.value))} />
                   </div>
                   <div className="grid gap-2">
@@ -216,13 +246,42 @@ export default function AdminProducts() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label>Volumes (comma-separated, e.g. 30ml, 50ml)</Label>
-                    <Input value={form.sizes.join(", ")} onChange={(e) => updateField("sizes", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))} />
+                    <Input value={form.sizes.join(", ")} onChange={(e) => updateVolumes(e.target.value)} />
                   </div>
                   <div className="grid gap-2">
                     <Label>Colors (comma-separated)</Label>
                     <Input value={form.colors.join(", ")} onChange={(e) => updateField("colors", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))} />
                   </div>
                 </div>
+                {form.sizes.length > 0 && (
+                  <div className="grid gap-3 p-4 bg-muted rounded-lg border border-border">
+                    <Label className="font-semibold">Volume Pricing</Label>
+                    {form.sizes.map((size) => (
+                      <div key={size} className="grid grid-cols-2 gap-3 p-3 bg-background rounded border border-border">
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Volume: {size}</Label>
+                          <Input 
+                            type="number"
+                            placeholder="Regular price"
+                            value={form.volumePricing?.[size]?.price || ""}
+                            onChange={(e) => updateVolumePrice(size, e.target.value)}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Discount Price (optional)</Label>
+                          <Input 
+                            type="number"
+                            placeholder="Discount price"
+                            value={form.volumePricing?.[size]?.discountPrice || ""}
+                            onChange={(e) => updateVolumeDiscountPrice(size, e.target.value)}
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label>Stock</Label>

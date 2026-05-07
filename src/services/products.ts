@@ -1,5 +1,10 @@
 import { supabase } from "@/lib/supabase";
 
+export interface VolumePrice {
+  price: number;
+  discountPrice?: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -11,7 +16,7 @@ export interface Product {
   discountPrice?: number;
   description: string;
   materials: string;
-  deliveryInfo: string;
+  volumePricing?: Record<string, VolumePrice>;
   images: string[];
   sizes: string[];
   colors: string[];
@@ -100,7 +105,7 @@ type ProductRow = {
   discount_price: number | null;
   description: string | null;
   materials: string | null;
-  delivery_info: string | null;
+  volume_pricing: Record<string, VolumePrice> | null;
   images: string[] | null;
   sizes: string[] | null;
   colors: string[] | null;
@@ -141,7 +146,7 @@ export function mapProduct(row: ProductRow): Product {
     discountPrice: row.discount_price ?? undefined,
     description: row.description ?? "",
     materials: row.materials ?? "",
-    deliveryInfo: row.delivery_info ?? "",
+    volumePricing: (row.volume_pricing as Record<string, VolumePrice>) ?? {},
     images: row.images ?? [],
     sizes: row.sizes ?? [],
     colors: row.colors ?? [],
@@ -164,7 +169,7 @@ export function productToRow(product: Omit<Product, "id" | "categoryName">, cate
     discount_price: product.discountPrice ?? null,
     description: product.description,
     materials: product.materials,
-    delivery_info: product.deliveryInfo,
+    volume_pricing: product.volumePricing ?? {},
     images: product.images,
     sizes: product.sizes,
     colors: product.colors,

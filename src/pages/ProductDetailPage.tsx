@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronRight, Minus, Plus, Heart, Truck } from "lucide-react";
+import { ChevronRight, Minus, Plus, Heart } from "lucide-react";
 import { useAdmin } from "@/context/AdminContext";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -19,7 +19,7 @@ export default function ProductDetailPage() {
 
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<"description" | "materials" | "delivery">("description");
+  const [activeTab, setActiveTab] = useState<"description" | "materials">("description");
 
   if (loading) {
     return (
@@ -115,13 +115,28 @@ export default function ProductDetailPage() {
               {product.name}
             </h1>
             <div className="mt-3 flex items-center gap-3">
-              <span className="price-text font-body text-xl font-semibold text-foreground">
-                GH₵{product.price.toFixed(2)}
-              </span>
-              {product.originalPrice && (
-                <span className="price-text font-body text-base text-muted-foreground line-through">
-                  GH₵{product.originalPrice.toFixed(2)}
-                </span>
+              {selectedSize && product.volumePricing?.[selectedSize] ? (
+                <>
+                  <span className="price-text font-body text-xl font-semibold text-foreground">
+                    GH₵{(product.volumePricing[selectedSize].discountPrice ?? product.volumePricing[selectedSize].price).toFixed(2)}
+                  </span>
+                  {product.volumePricing[selectedSize].discountPrice && (
+                    <span className="price-text font-body text-base text-muted-foreground line-through">
+                      GH₵{product.volumePricing[selectedSize].price.toFixed(2)}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <span className="price-text font-body text-xl font-semibold text-foreground">
+                    GH₵{product.price.toFixed(2)}
+                  </span>
+                  {product.originalPrice && (
+                    <span className="price-text font-body text-base text-muted-foreground line-through">
+                      GH₵{product.originalPrice.toFixed(2)}
+                    </span>
+                  )}
+                </>
               )}
             </div>
 
@@ -199,18 +214,10 @@ export default function ProductDetailPage() {
               </motion.button>
             </div>
 
-            {/* Delivery */}
-            <div className="mt-6 flex items-start gap-3 rounded-lg bg-secondary/50 p-4">
-              <Truck className="mt-0.5 h-4 w-4 text-muted-foreground shrink-0" />
-              <p className="font-body text-xs leading-relaxed text-muted-foreground">
-                {product.deliveryInfo}
-              </p>
-            </div>
-
             {/* Tabs */}
             <div className="mt-10 border-t border-border pt-8">
               <div className="flex gap-6 border-b border-border">
-                {(["description", "materials", "delivery"] as const).map((tab) => (
+                {(["description", "materials"] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -218,7 +225,7 @@ export default function ProductDetailPage() {
                       activeTab === tab ? "text-primary" : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    {tab === "delivery" ? "Delivery Info" : tab === "materials" ? "Notes" : "Description"}
+                    {tab === "materials" ? "Notes" : "Description"}
                     {activeTab === tab && (
                       <motion.div
                         layoutId="tab-indicator"
@@ -232,7 +239,6 @@ export default function ProductDetailPage() {
               <div className="mt-6 font-body text-sm leading-relaxed text-muted-foreground">
                 {activeTab === "description" && product.description}
                 {activeTab === "materials" && product.materials}
-                {activeTab === "delivery" && product.deliveryInfo}
               </div>
             </div>
           </motion.div>

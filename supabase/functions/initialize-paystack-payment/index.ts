@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
   const productIds = [...new Set(items.map((item) => item.productId))];
   const { data: products, error: productsError } = await supabase
     .from("products")
-    .select("id, name, price, is_active, status")
+    .select("id, name, price, volume_pricing, is_active, status")
     .in("id", productIds);
 
   if (productsError) return json({ error: productsError.message }, 500);
@@ -90,7 +90,16 @@ Deno.serve(async (req) => {
       return json({ error: "One or more products are no longer available." }, 400);
     }
 
-    const unitPrice = Number(product.price);
+    // Get price based on volume if available, otherwise fall back to product price
+    let unitPrice = Number(product.price);
+    if (product.volume_pricing && item.size) {
+      const volumePricing = product.volume_pricing[item.size];
+      if (volumePricing) {
+        // Use discount price if available, otherwise use regular price
+        unitPrice = volumePricing.discountPrice ?? volumePricing.price;
+      }
+    }
+    
     const lineTotal = unitPrice * item.quantity;
     total += lineTotal;
     orderItems.push({
