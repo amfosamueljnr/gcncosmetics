@@ -8,7 +8,7 @@ import { testimonials } from "@/services/products";
 import heroImage from "@/assets/gcn-bg.jpeg";
 import heroImage2 from "@/assets/image.png";
 import categoryFirst from "@/assets/gcn-bg.jpeg";
-import categorySkin from "@/assets/cat1.jpeg";
+import categorySkin from "@/assets/haircover.jpeg";
 import categoryThird from "@/assets/kiss-me.png";
 import { useState } from "react";
 
@@ -50,7 +50,7 @@ export default function HomePage() {
               <span className="text-accent">Made in Ghana.</span>
             </h2>
             <p className="mx-auto mt-6 max-w-xl font-body text-base leading-relaxed text-background/80" style={{ textWrap: "pretty" }}>
-              Premium lip balms and hair care crafted in Accra. Every formula combines raw shea, argan oil, and West African botanicals for lips that shine and hair that thrives.
+              Every formula combines raw shea, argan oil, and West African botanicals for lips that shine and hair that thrives.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} transition={spring}>

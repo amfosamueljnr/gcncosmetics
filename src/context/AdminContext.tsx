@@ -56,19 +56,19 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         const [
           ordersData,
           { count: totalOrders },
-          { count: totalCustomers },
+          { data: paidCustomerRows },
           { data: revenueRows },
         ] = await Promise.all([
           fetchOrders(),
-          supabase.from("orders").select("*", { count: "exact", head: true }),
-          supabase.from("customers").select("*", { count: "exact", head: true }),
+          supabase.from("orders").select("*", { count: "exact", head: true }).in("status", ["paid", "shipped", "delivered"]),
+          supabase.from("orders").select("customer_id").in("status", ["paid", "shipped", "delivered"]),
           supabase.from("orders").select("total").eq("status", "paid"),
         ]);
         setOrders(ordersData);
         setDashboardStats({
           totalRevenue: revenueRows?.reduce((sum, order) => sum + Number(order.total), 0) ?? 0,
           totalOrders: totalOrders ?? 0,
-          totalCustomers: totalCustomers ?? 0,
+          totalCustomers: new Set((paidCustomerRows ?? []).map((order) => order.customer_id)).size,
         });
       } else {
         setOrders([]);

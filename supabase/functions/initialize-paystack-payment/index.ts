@@ -17,6 +17,15 @@ type CheckoutPayload = {
   callbackUrl?: string;
 };
 
+type PaystackMetadataItem = {
+  product_id: string;
+  product_name: string;
+  size: string | null;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -81,7 +90,7 @@ Deno.serve(async (req) => {
   if (productsError) return json({ error: productsError.message }, 500);
 
   const productsById = new Map((products ?? []).map((product) => [product.id as string, product]));
-  const orderItems = [];
+  const orderItems: PaystackMetadataItem[] = [];
   let total = 0;
 
   for (const item of items) {
@@ -112,43 +121,6 @@ Deno.serve(async (req) => {
     });
   }
 
-  const { data: savedCustomer, error: customerError } = await supabase
-    .from("customers")
-    .upsert(
-      {
-        full_name: fullName,
-        email,
-        phone,
-        default_address: address,
-        status: "active",
-      },
-      { onConflict: "phone" }
-    )
-    .select("id")
-    .single();
-
-  if (customerError) return json({ error: customerError.message }, 500);
-
-  const { data: order, error: orderError } = await supabase
-    .from("orders")
-    .insert({
-      customer_id: savedCustomer.id,
-      total,
-      status: "pending",
-      shipping_address: address,
-      payment_provider: "paystack",
-    })
-    .select("id")
-    .single();
-
-  if (orderError) return json({ error: orderError.message }, 500);
-
-  const { error: itemsError } = await supabase
-    .from("order_items")
-    .insert(orderItems.map((item) => ({ ...item, order_id: order.id })));
-
-  if (itemsError) return json({ error: itemsError.message }, 500);
-
   const paystackResponse = await fetch("https://api.paystack.co/transaction/initialize", {
     method: "POST",
     headers: {
@@ -161,7 +133,17 @@ Deno.serve(async (req) => {
       currency: "GHS",
       callback_url: callbackUrl || undefined,
       metadata: {
-        order_id: order.id,
+        checkout: {
+          customer: {
+            full_name: fullName,
+            email,
+            phone,
+            address,
+          },
+          items: orderItems,
+          total,
+        },
+        expected_amount: Math.round(total * 100),
         customer_name: fullName,
         customer_phone: phone,
       },
@@ -175,18 +157,10 @@ Deno.serve(async (req) => {
   }
 
   const reference = paystackData.data.reference as string;
-  const { error: referenceError } = await supabase
-    .from("orders")
-    .update({ payment_reference: reference })
-    .eq("id", order.id);
-
-  if (referenceError) return json({ error: referenceError.message }, 500);
-
   return json({
     authorizationUrl: paystackData.data.authorization_url,
     accessCode: paystackData.data.access_code,
     reference,
-    orderId: order.id,
     amount: total,
   });
 });

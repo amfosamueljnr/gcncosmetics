@@ -1,5 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.105.1";
 
+type CheckoutMetadataItem = {
+  product_id?: unknown;
+  product_name?: unknown;
+  size?: unknown;
+  quantity?: unknown;
+  unit_price?: unknown;
+  total_price?: unknown;
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -14,6 +23,18 @@ function json(body: unknown, status = 200) {
 
 function cleanText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function readMetadata(metadata: unknown) {
+  if (typeof metadata === "string") {
+    try {
+      return JSON.parse(metadata);
+    } catch {
+      return {};
+    }
+  }
+
+  return metadata && typeof metadata === "object" ? metadata as Record<string, unknown> : {};
 }
 
 Deno.serve(async (req) => {
@@ -42,16 +63,16 @@ Deno.serve(async (req) => {
     auth: { persistSession: false },
   });
 
-  const { data: order, error: orderError } = await supabase
+  const { data: existingOrder, error: orderError } = await supabase
     .from("orders")
     .select("id, total, status, payment_reference")
     .eq("payment_reference", reference)
-    .single();
+    .maybeSingle();
 
-  if (orderError || !order) return json({ error: "Order not found for this payment reference." }, 404);
+  if (orderError) return json({ error: orderError.message }, 500);
 
-  if (order.status === "paid") {
-    return json({ orderId: order.id, reference, status: "paid" });
+  if (existingOrder?.status === "paid") {
+    return json({ orderId: existingOrder.id, reference, status: "paid" });
   }
 
   const paystackResponse = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
@@ -68,7 +89,11 @@ Deno.serve(async (req) => {
   }
 
   const transaction = paystackData.data;
-  const expectedAmount = Math.round(Number(order.total) * 100);
+  const metadata = readMetadata(transaction.metadata);
+  const checkout = readMetadata(metadata.checkout);
+  const expectedAmount = existingOrder
+    ? Math.round(Number(existingOrder.total) * 100)
+    : Number(metadata.expected_amount);
 
   if (transaction.status !== "success") {
     return json({ error: `Payment is ${transaction.status}.` }, 402);
@@ -78,15 +103,117 @@ Deno.serve(async (req) => {
     return json({ error: "Payment details do not match this order." }, 409);
   }
 
-  const { error: updateError } = await supabase
+  if (existingOrder) {
+    const { error: updateError } = await supabase
+      .from("orders")
+      .update({
+        status: "paid",
+        payment_verified_at: new Date().toISOString(),
+      })
+      .eq("id", existingOrder.id);
+
+    if (updateError) return json({ error: updateError.message }, 500);
+
+    return json({ orderId: existingOrder.id, reference, status: "paid" });
+  }
+
+  const customer = readMetadata(checkout.customer);
+  const fullName = cleanText(customer.full_name);
+  const email = cleanText(customer.email).toLowerCase();
+  const phone = cleanText(customer.phone);
+  const address = cleanText(customer.address);
+  const total = Number(checkout.total);
+  const items = Array.isArray(checkout.items) ? checkout.items as CheckoutMetadataItem[] : [];
+
+  if (
+    !fullName ||
+    !email ||
+    !phone ||
+    !address ||
+    !Number.isFinite(total) ||
+    total <= 0 ||
+    Math.round(total * 100) !== expectedAmount ||
+    !items.length
+  ) {
+    return json({ error: "Verified payment is missing checkout details." }, 409);
+  }
+
+  const orderItems = items.map((item) => ({
+    product_id: cleanText(item.product_id) || null,
+    product_name: cleanText(item.product_name),
+    size: cleanText(item.size) || null,
+    quantity: Number(item.quantity),
+    unit_price: Number(item.unit_price),
+    total_price: Number(item.total_price),
+  }));
+
+  if (
+    orderItems.some((item) =>
+      !item.product_name ||
+      !Number.isInteger(item.quantity) ||
+      item.quantity <= 0 ||
+      !Number.isFinite(item.unit_price) ||
+      item.unit_price < 0 ||
+      !Number.isFinite(item.total_price) ||
+      item.total_price < 0
+    )
+  ) {
+    return json({ error: "Verified payment contains invalid order items." }, 409);
+  }
+
+  const { data: savedCustomer, error: customerError } = await supabase
+    .from("customers")
+    .upsert(
+      {
+        full_name: fullName,
+        email,
+        phone,
+        default_address: address,
+        status: "active",
+      },
+      { onConflict: "phone" }
+    )
+    .select("id")
+    .single();
+
+  if (customerError) return json({ error: customerError.message }, 500);
+
+  const { data: order, error: createOrderError } = await supabase
     .from("orders")
-    .update({
+    .insert({
+      customer_id: savedCustomer.id,
+      total,
       status: "paid",
+      shipping_address: address,
+      payment_provider: "paystack",
+      payment_reference: reference,
       payment_verified_at: new Date().toISOString(),
     })
-    .eq("id", order.id);
+    .select("id")
+    .single();
 
-  if (updateError) return json({ error: updateError.message }, 500);
+  if (createOrderError) {
+    const { data: paidOrder } = await supabase
+      .from("orders")
+      .select("id, status")
+      .eq("payment_reference", reference)
+      .maybeSingle();
+
+    if (paidOrder?.status === "paid") {
+      return json({ orderId: paidOrder.id, reference, status: "paid" });
+    }
+
+    return json({ error: createOrderError.message }, 500);
+  }
+
+  const { error: itemsError } = await supabase
+    .from("order_items")
+    .insert(orderItems.map((item) => ({ ...item, order_id: order.id })));
+
+  if (itemsError) {
+    await supabase.from("orders").delete().eq("id", order.id);
+    return json({ error: itemsError.message }, 500);
+  }
 
   return json({ orderId: order.id, reference, status: "paid" });
 });

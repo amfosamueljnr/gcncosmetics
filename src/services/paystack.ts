@@ -21,7 +21,6 @@ export type PaystackCheckoutResponse = {
   authorizationUrl: string;
   accessCode: string;
   reference: string;
-  orderId: string;
   amount: number;
 };
 

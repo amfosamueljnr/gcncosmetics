@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Heart, Globe, Sparkles, Users } from "lucide-react";
-import heroImage1 from "@/assets/gcn-bg.jpeg";
-import heroImage2 from "@/assets/image.png";
+import heroImage1 from "@/assets/image copy.png";
+import heroImage2 from "@/assets/image copy 2.png";
 import categoryHair from "@/assets/kiss-me.png";
 import categorySkin from "@/assets/cat1.jpeg";
 
@@ -156,7 +156,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="section-editorial">
+      {/* <section className="section-editorial">
         <div className="container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -193,7 +193,7 @@ export default function AboutPage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
     </main>
   );
 }

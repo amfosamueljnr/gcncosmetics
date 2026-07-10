@@ -37,7 +37,7 @@ type CustomerRow = {
 };
 
 function mapCustomer(row: CustomerRow): Customer {
-  const orders = row.orders ?? [];
+  const orders = (row.orders ?? []).filter((order) => ["paid", "shipped", "delivered"].includes(order.status));
   return {
     id: row.id,
     name: row.full_name,
@@ -77,7 +77,7 @@ export default function AdminCRMPage() {
       if (customersError) {
         setError(customersError.message);
       } else {
-        setCustomers((data ?? []).map((row) => mapCustomer(row as CustomerRow)));
+        setCustomers((data ?? []).map((row) => mapCustomer(row as CustomerRow)).filter((customer) => customer.totalOrders > 0));
       }
       setLoading(false);
     }

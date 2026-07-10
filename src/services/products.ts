@@ -66,23 +66,23 @@ export interface Testimonial {
 export const testimonials: Testimonial[] = [
   {
     id: "1",
-    name: "Akosua Mensah",
-    location: "Accra, Ghana",
-    text: "My hair has never felt better. The Argan Hair Oil transformed my dry, brittle ends into silk. Visible shine in just two weeks.",
+    name: "Akosua M.",
+    location: "Accra",
+    text: "Hair breakage for years, but after using the GCN Hair Growth Oil and Moisturizing Spray for just a few weeks, my hair feels stronger and healthier. My edges are finally growing back",
     rating: 5,
   },
   {
     id: "2",
-    name: "Kwame Boateng",
-    location: "Kumasi, Ghana",
-    text: "I've tried so many lip balms. This one finally keeps my lips soft and hydrated all day. Love the natural color too.",
+    name: "Belinda A.",
+    location: "Cape Coast",
+    text: "The Hair Growth Bundle is amazing! The spray keeps my hair soft and moisturized all day, and the oil has helped reduce shedding significantly. Highly recommended.",
     rating: 5,
   },
   {
     id: "3",
-    name: "Ama Owusu",
-    location: "Tema, Ghana",
-    text: "The Shea Hair Treatment strengthened my natural curls and reduced breakage noticeably. Worth every cedi. I'm obsessed.",
+    name: "Sandra O.",
+    location: "Takoradi",
+    text: "I've tried many hair products, but GCN is different. My hair stays moisturized longer, and I've noticed visible growth after consistent use. The scent is also lovely.",
     rating: 5,
   },
 ];
@@ -237,6 +237,7 @@ export async function fetchOrders() {
   const { data, error } = await supabase
     .from("orders")
     .select("*, customers(full_name, email, phone), order_items(product_id, product_name, size, quantity, unit_price)")
+    .in("status", ["paid", "shipped", "delivered"])
     .order("created_at", { ascending: false });
 
   if (error) throw error;
