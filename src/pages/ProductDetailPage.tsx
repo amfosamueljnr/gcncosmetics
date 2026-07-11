@@ -62,10 +62,11 @@ export default function ProductDetailPage() {
 
   const wishlisted = isInWishlist(product.id);
   const related = getPublishedProducts().filter((p) => p.id !== product.id).slice(0, 4);
+  const hasVolumeOptions = product.sizes.length > 0;
 
   const handleAddToCart = () => {
-    if (!selectedSize) {
-      toast({ title: "Please select a size", variant: "destructive" });
+    if (hasVolumeOptions && !selectedSize) {
+      toast({ title: "Please select a volume", variant: "destructive" });
       return;
     }
     addItem(product, selectedSize, quantity);

@@ -10,6 +10,7 @@ import { AdminAuthProvider } from "@/context/AdminAuthContext";
 import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import HomePage from "@/pages/HomePage";
 import ShopPage from "@/pages/ShopPage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
@@ -97,6 +98,7 @@ const App = () => (
                           <Route path="*" element={<NotFound />} />
                         </Routes>
                         <Footer />
+                        <FloatingWhatsApp />
                       </>
                     }
                   />

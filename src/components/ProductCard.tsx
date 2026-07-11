@@ -19,13 +19,9 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const size = product.sizes[0];
-    if (!size) {
-      toast({ title: "No volume available", variant: "destructive" });
-      return;
-    }
+    const size = product.sizes[0] ?? "";
     addItem(product, size);
-    toast({ title: "Added to bag", description: `${product.name} - ${size}` });
+    toast({ title: "Added to bag", description: size ? `${product.name} - ${size}` : product.name });
   };
 
   const handleToggleWishlist = (e: React.MouseEvent) => {

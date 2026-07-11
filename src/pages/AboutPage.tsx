@@ -31,7 +31,7 @@ export default function AboutPage() {
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={spring}>
               <p className="label-uppercase text-accent mb-4">Our Story</p>
               <h2 className="font-display text-4xl md:text-6xl font-bold text-foreground leading-[1] tracking-[-0.03em]">
-                Lip & Hair Care from Accra
+                Lip & Hair Care
               </h2>
               <p className="mt-6 font-body text-base leading-relaxed text-muted-foreground">
                 GCN Cosmetics began with a simple belief: the world needs better lip care and hair products—ones that work for African hair and skin. Founded in Accra, we combine ancestral botanicals with modern cosmetic science to create formulas that truly perform.
