@@ -1,4 +1,4 @@
-const phoneNumber = "233599551592";
+const phoneNumber = "233274654976";
 const message = "Hello GCN Cosmetics, I would like to make an enquiry.";
 
 export default function FloatingWhatsApp() {
